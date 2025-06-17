@@ -1,532 +1,432 @@
 <!DOCTYPE html>
 <html lang="es">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Control Ekran</title>
     <style>
-      body {
-        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-        max-width: 800px;
-        margin: 0 auto;
-        padding: 20px;
-        background: #fff;
-        color: white;
-        min-height: 100vh;
-      }
-      .container {
-        background: #2f4858;
-        padding: 30px;
-        border-radius: 20px;
-        backdrop-filter: blur(10px);
-        box-shadow: 0 8px 32px rgba(31, 38, 135, 0.37);
-        border: 1px solid rgba(255, 255, 255, 0.18);
-      }
-      h1 {
-        text-align: center;
-        font-size: 2.5em;
-        margin-bottom: 30px;
-        text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
-      }
-      .status-panel {
-        background: rgba(255, 255, 255, 0.2);
-        padding: 20px;
-        border-radius: 15px;
-        margin-bottom: 30px;
-        border-left: 5px solid #33658a;
-      }
-      .status-item {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin: 10px 0;
-        padding: 8px 0;
-        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-      }
-      .status-item:last-child {
-        border-bottom: none;
-      }
-      .status-label {
-        font-weight: bold;
-        color: #e3f2fd;
-      }
-      .status-value {
-        color: #fff;
-        font-family: "Courier New", monospace;
-      }
-      .progress-bar {
-        width: 100%;
-        height: 25px;
-        background: rgba(255, 255, 255, 0.2);
-        border-radius: 12px;
-        overflow: hidden;
-        margin: 15px 0;
-      }
-      .progress-fill {
-        height: 100%;
-        background: #f6ae2d;
-        border-radius: 12px;
-        transition: width 0.3s ease;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        color: white;
-        font-weight: bold;
-      }
-      .controls {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-        gap: 15px;
-        margin-top: 30px;
-      }
-      .btn {
-        padding: 15px 25px;
-        border: none;
-        border-radius: 12px;
-        font-size: 16px;
-        font-weight: bold;
-        cursor: pointer;
-        transition: all 0.3s ease;
-        text-transform: uppercase;
-        letter-spacing: 1px;
-      }
-      .btn:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
-      }
-      .btn:active {
-        transform: translateY(0);
-      }
-      .btn-open {
-        background: #33658a;
-        color: white;
-      }
-      .btn-close {
-        background: #f26419;
-        color: white;
-      }
-      .btn-reset {
-        background: linear-gradient(45deg, #ffc107, #ffd54f);
-        color: #333;
-      }
-      .btn:disabled {
-        opacity: 0.5;
-        cursor: not-allowed;
-        transform: none;
-      }
-      .connection-status {
-        position: fixed;
-        top: 20px;
-        right: 20px;
-        padding: 10px 20px;
-        border-radius: 25px;
-        font-weight: bold;
-        z-index: 1000;
-      }
-      .connected {
-        background: #33658a;
-        color: white;
-      }
-      .disconnected {
-        background: #f44336;
-        color: white;
-      }
-      .alert {
-        background: rgba(244, 67, 54, 0.9);
-        color: white;
-        padding: 15px;
-        border-radius: 10px;
-        margin: 15px 0;
-        border-left: 5px solid #f44336;
-      }
-      .log {
-        background: rgba(0, 0, 0, 0.3);
-        padding: 15px;
-        border-radius: 10px;
-        margin-top: 20px;
-        font-family: "Courier New", monospace;
-        font-size: 12px;
-        max-height: 200px;
-        overflow-y: auto;
-      }
-      /* Aumentar especificidad para indicadores LED */
-      .status-value .led-indicator.led-green {
-        background: #4caf50 !important;
-      }
-      .status-value .led-indicator.led-red {
-        background: #f44336 !important;
-      }
-      .status-value .led-indicator.led-off {
-        background: #c5c5c5 !important;
-      }
-      .led-indicator {
-        display: inline-block;
-        width: 12px;
-        height: 12px;
-        border-radius: 50%;
-        margin-left: 8px;
-        transition: background 0.3s ease;
-      }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #fff;
+            color: white;
+            min-height: 100vh;
+        }
+        .container {
+            background: #2F4858;
+            padding: 30px;
+            border-radius: 20px;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 8px 32px rgba(31, 38, 135, 0.37);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+        }
+        h1 {
+            text-align: center;
+            font-size: 2.5em;
+            margin-bottom: 30px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+        }
+        .status-panel {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 20px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+            border-left: 5px solid #33658A;
+        }
+        .status-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin: 10px 0;
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        .status-item:last-child {
+            border-bottom: none;
+        }
+        .status-label {
+            font-weight: bold;
+            color: #E3F2FD;
+        }
+        .status-value {
+            color: #FFF;
+            font-family: 'Courier New', monospace;
+        }
+        .progress-bar {
+            width: 100%;
+            height: 25px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 12px;
+            overflow: hidden;
+            margin: 15px 0;
+        }
+        .progress-fill {
+            height: 100%;
+            background: #F6AE2D;
+            border-radius: 12px;
+            transition: width 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+        }
+        .controls {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 30px;
+        }
+        .btn {
+            padding: 15px 25px;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+        }
+        .btn:active {
+            transform: translateY(0);
+        }
+        .btn-open {
+            background: #33658a;
+            color: white;
+        }
+        .btn-close {
+            background: #f26419;
+            color: white;
+        }
+        .btn-reset {
+            background: linear-gradient(45deg, #FFC107, #FFD54F);
+            color: #333;
+        }
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+        .connection-status {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 10px 20px;
+            border-radius: 25px;
+            font-weight: bold;
+            z-index: 1000;
+        }
+        .connected {
+            background: #33658A;
+            color: white;
+        }
+        .disconnected {
+            background: #F44336;
+            color: white;
+        }
+        .alert {
+            background: rgba(244, 67, 54, 0.9);
+            color: white;
+            padding: 15px;
+            border-radius: 10px;
+            margin: 15px 0;
+            border-left: 5px solid #F44336;
+        }
+        .log {
+            background: rgba(0,0,0,0.3);
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 20px;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        /* Aumentar especificidad para indicadores LED */
+        .status-value .led-indicator.led-green {
+            background: #4CAF50 !important;
+        }
+        .status-value .led-indicator.led-red {
+            background: #F44336 !important;
+        }
+        .status-value .led-indicator.led-off {
+            background: #c5c5c5 !important;
+        }
+        .led-indicator {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-left: 8px;
+            transition: background 0.3s ease;
+        }
     </style>
-  </head>
-  <body>
+</head>
+<body>
     <div class="container">
-      <h1>🎛️ Control Ekran</h1>
-      <div class="connection-status disconnected" id="connectionStatus">
-        Desconectado
-      </div>
-      <div class="status-panel">
-        <div class="status-item">
-          <span class="status-label">Estado:</span>
-          <span class="status-value" id="sistemaEstado">Iniciando...</span>
+        <h1>🎛️ Control Ekran</h1>
+        <div class="connection-status disconnected" id="connectionStatus">Desconectado</div>
+        <div class="status-panel">
+            <div class="status-item">
+                <span class="status-label">Estado:</span>
+                <span class="status-value" id="sistemaEstado">Iniciando...</span>
+            </div>
+            <div class="status-item">
+                <span class="status-label">Posición:</span>
+                <span class="status-value" id="posicion">0 / 1500 (0%)</span>
+            </div>
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressBar" style="width: 0%">0%</div>
+            </div>
+            <div class="status-item">
+                <span class="status-label">Sensor:</span>
+                <span class="status-value" id="sensor">Desconocido</span>
+            </div>
+            <div class="status-item">
+                <span class="status-label">Motor:</span>
+                <span class="status-value" id="motor">Detenido</span>
+            </div>
+            <div class="status-item">
+                <span class="status-label">LEDs:</span>
+                <span class="status-value">
+                    Verde <span class="led-indicator led-off" id="ledVerde"></span>
+                    | Rojo <span class="led-indicator led-off" id="ledRojo"></span>
+                </span>
+            </div>
         </div>
-        <div class="status-item">
-          <span class="status-label">Posición:</span>
-          <span class="status-value" id="posicion">0 / 1500 (0%)</span>
-        </div>
-        <div class="progress-bar">
-          <div class="progress-fill" id="progressBar" style="width: 0%">0%</div>
-        </div>
-        <div class="status-item">
-          <span class="status-label">Sensor:</span>
-          <span class="status-value" id="sensor">Desconocido</span>
-        </div>
-        <div class="status-item">
-          <span class="status-label">Motor:</span>
-          <span class="status-value" id="motor">Detenido</span>
-        </div>
-        <div class="status-item">
-          <span class="status-label">LEDs:</span>
-          <span class="status-value">
-            Verde <span class="led-indicator led-off" id="ledVerde"></span> |
-            Rojo <span class="led-indicator led-off" id="ledRojo"></span>
-          </span>
-        </div>
-      </div>
-      <div id="alertContainer"></div>
-      <div class="controls">
-        <button
-          class="btn btn-open"
-          id="btnAbrir"
-          onclick="enviarComando('ABRIR')"
-        >
-          Abrir (<span id="pasosAbrir">0</span> pasos)
-        </button>
-        <button
-          class="btn btn-close"
-          id="btnCerrar"
-          onclick="enviarComando('CERRAR')"
-        >
-          Cerrar (<span id="pasosCerrar">0</span> pasos)
-        </button>
-        <!-- <button class="btn btn-reset" id="btnReset" onclick="enviarComando('RESET')">
+        <div id="alertContainer"></div>
+        <div class="controls">
+            <button class="btn btn-open" id="btnAbrir" onclick="enviarComando('ABRIR')">
+                Abrir (<span id="pasosAbrir">0</span> pasos)
+            </button>
+            <button class="btn btn-close" id="btnCerrar" onclick="enviarComando('CERRAR')">
+                Cerrar (<span id="pasosCerrar">0</span> pasos)
+            </button>
+            <!-- <button class="btn btn-reset" id="btnReset" onclick="enviarComando('RESET')">
                 🔄 Reset
             </button> -->
-      </div>
-      <div class="log" id="log">
-        <div>📡 Iniciando...</div>
-      </div>
+        </div>
+        <div class="log" id="log">
+            <div>📡 Iniciando...</div>
+        </div>
     </div>
 
     <script>
-      const API_URL = "http://192.168.0.40";
-      const logContainer = document.getElementById("log");
-      const STEPS_PER_SECOND = 400;
-      let isMoving = false;
-      let isObstructed = false;
-      let animationFrame = null;
-      let lastStatus = { p: 0, t: 1500, c: 0 }; // Estado inicial por defecto
-      let currentMovement = null; // 'ABRIR' o 'CERRAR'
-      let movementStartTime = null;
-      let movementStartPos = null;
-      let sensorBlocked = false; // Estado del sensor bloqueado
+        const API_URL = 'http://192.168.0.40';
+        const logContainer = document.getElementById('log');
+        const STEPS_PER_SECOND = 400; 
+        let isMoving = false;
+        let isObstructed = false;
+        let animationFrame = null;
+        let lastStatus = { p: 0, t: 1500, c: 0 }; // Estado inicial por defecto
+        let currentMovement = null; // 'ABRIR' o 'CERRAR'
+        let movementStartTime = null;
+        let movementStartPos = null;
 
-      function resetMovementState() {
-        currentMovement = null;
-        movementStartTime = null;
-        movementStartPos = null;
-        isMoving = false;
-        if (animationFrame) {
-          cancelAnimationFrame(animationFrame);
-          animationFrame = null;
-        }
-      }
-
-      function addLog(message) {
-        const logEntry = document.createElement("div");
-        logEntry.textContent = `${new Date().toLocaleTimeString()}: ${message}`;
-        logContainer.appendChild(logEntry);
-        logContainer.scrollTop = logContainer.scrollHeight;
-      }
-
-      async function fetchStatus() {
-        try {
-          const response = await fetch(`${API_URL}/status?_=${Date.now()}`);
-          if (!response.ok) throw new Error(`Error HTTP: ${response.status}`);
-          const data = await response.json();
-          addLog(
-            `Estado recibido: LED Verde=${
-              data.v
-            } (${typeof data.v}), LED Rojo=${data.r} (${typeof data.r})`
-          );
-          updateUI(data);
-          lastStatus = {
-            p: data.p,
-            t: data.t,
-            c: data.c,
-            e: data.e,
-            s: data.s,
-            m: data.m,
-            v: data.v,
-            r: data.r,
-            o: data.o,
-            tr: data.tr,
-          };
-          updateConnectionStatus(true);
-          return data;
-        } catch (error) {
-          addLog(`Error al actualizar: ${error.message}`);
-          updateConnectionStatus(false);
-          return null;
-        }
-      }
-
-      function updateUI(data) {
-        if (!data) return;
-
-        // Detectar si el movimiento se detuvo inesperadamente
-        const wasMoving = isMoving;
-        const isNowMoving = data.m === "MOVIENDOSE";
-
-        if (wasMoving && !isNowMoving && animationFrame) {
-          // El movimiento se detuvo, cancelar animación y sincronizar
-          addLog(
-            `Movimiento interrumpido detectado - sincronizando con posición real: ${data.p}`
-          );
-          cancelAnimationFrame(animationFrame);
-          animationFrame = null;
-          resetMovementState();
+        function resetMovementState() {
+            currentMovement = null;
+            movementStartTime = null;
+            movementStartPos = null;
+            isMoving = false;
+            if (animationFrame) {
+                cancelAnimationFrame(animationFrame);
+                animationFrame = null;
+            }
         }
 
-        // Detectar nueva obstrucción
-        const wasObstructed = isObstructed;
-        const isNowObstructed = data.o === "1";
-
-        if (!wasObstructed && isNowObstructed) {
-          // Nueva obstrucción detectada - bloquear sensor
-          sensorBlocked = true;
-          addLog("Sensor bloqueado por obstrucción");
+        function addLog(message) {
+            const logEntry = document.createElement('div');
+            logEntry.textContent = `${new Date().toLocaleTimeString()}: ${message}`;
+            logContainer.appendChild(logEntry);
+            logContainer.scrollTop = logContainer.scrollHeight;
         }
 
-        // Depuración de LEDs
-        console.log(
-          `LED Verde: ${data.v} (${typeof data.v}), LED Rojo: ${
-            data.r
-          } (${typeof data.r})`
-        );
-        addLog(`Actualizando UI: v=${data.v}, r=${data.r}`);
-
-        document.getElementById("sistemaEstado").textContent =
-          data.e || "Desconocido";
-        document.getElementById(
-          "posicion"
-        ).textContent = `${data.p} / ${data.t} (${data.c}%)`;
-
-        // Actualizar sensor - mantener "Bloqueado" hasta que se presione un botón
-        if (sensorBlocked) {
-          document.getElementById("sensor").textContent = "Bloqueado";
-        } else {
-          document.getElementById("sensor").textContent =
-            data.o === "1" ? "Obstrucción" : "Normal";
+        async function fetchStatus() {
+            try {
+                const response = await fetch(`${API_URL}/status?_=${Date.now()}`);
+                if (!response.ok) throw new Error(`Error HTTP: ${response.status}`);
+                const data = await response.json();
+                addLog(`Estado recibido: LED Verde=${data.v} (${typeof data.v}), LED Rojo=${data.r} (${typeof data.r})`);
+                updateUI(data);
+                lastStatus = { p: data.p, t: data.t, c: data.c, e: data.e, s: data.s, m: data.m, v: data.v, r: data.r, o: data.o, tr: data.tr };
+                updateConnectionStatus(true);
+                return data;
+            } catch (error) {
+                addLog(`Error al actualizar: ${error.message}`);
+                updateConnectionStatus(false);
+                return null;
+            }
         }
 
-        // Actualizar motor según movimiento y dirección
-        let motorText = "Detenido";
-        if (data.m === "MOVIENDOSE") {
-          if (currentMovement === "ABRIR") {
-            motorText = "Abriéndose";
-          } else if (currentMovement === "CERRAR") {
-            motorText = "Cerrándose";
-          } else {
-            motorText = "Moviéndose";
-          }
-        }
-        document.getElementById("motor").textContent = motorText;
+        function updateUI(data) {
+            if (!data) return;
 
-        // Actualizar LEDs con manejo de tipos
-        const ledVerde = document.getElementById("ledVerde");
-        const ledRojo = document.getElementById("ledRojo");
-        ledVerde.classList.remove("led-green", "led-off");
-        ledRojo.classList.remove("led-red", "led-off");
+            // Detectar si el movimiento se detuvo inesperadamente
+            const wasMoving = isMoving;
+            const isNowMoving = data.m === 'MOVIENDOSE';
+            
+            if (wasMoving && !isNowMoving && animationFrame) {
+                // El movimiento se detuvo, cancelar animación y sincronizar
+                addLog(`Movimiento interrumpido detectado - sincronizando con posición real: ${data.p}`);
+                cancelAnimationFrame(animationFrame);
+                animationFrame = null;
+                resetMovementState();
+            }
 
-        // Convertir a string y comparar
-        const v = String(data.v);
-        const r = String(data.r);
-        ledVerde.classList.add(v === "1" ? "led-green" : "led-off");
-        ledRojo.classList.add(r === "1" ? "led-red" : "led-off");
+            // Depuración de LEDs
+            console.log(`LED Verde: ${data.v} (${typeof data.v}), LED Rojo: ${data.r} (${typeof data.r})`);
+            addLog(`Actualizando UI: v=${data.v}, r=${data.r}`);
 
-        // Forzar re-renderizado
-        ledVerde.style.opacity =
-          ledVerde.style.opacity === "0.99" ? "1" : "0.99";
-        ledRojo.style.opacity = ledRojo.style.opacity === "0.99" ? "1" : "0.99";
+            document.getElementById('sistemaEstado').textContent = data.e || 'Desconocido';
+            document.getElementById('posicion').textContent = `${data.p} / ${data.t} (${data.c}%)`;
+            document.getElementById('sensor').textContent = data.s || 'Desconocido';
+            document.getElementById('motor').textContent = data.m || 'Desconocido';
 
-        // Depuración de clases aplicadas
-        addLog(
-          `Clases aplicadas: Verde=${ledVerde.className}, Rojo=${ledRojo.className}`
-        );
+            // Actualizar LEDs con manejo de tipos
+            const ledVerde = document.getElementById('ledVerde');
+            const ledRojo = document.getElementById('ledRojo');
+            ledVerde.classList.remove('led-green', 'led-off');
+            ledRojo.classList.remove('led-red', 'led-off');
 
-        document.getElementById("pasosAbrir").textContent = data.t - data.p;
-        document.getElementById("pasosCerrar").textContent = data.p;
+            // Convertir a string y comparar
+            const v = String(data.v);
+            const r = String(data.r);
+            ledVerde.classList.add(v === '1' ? 'led-green' : 'led-off');
+            ledRojo.classList.add(r === '1' ? 'led-red' : 'led-off');
 
-        const btnAbrir = document.getElementById("btnAbrir");
-        const btnCerrar = document.getElementById("btnCerrar");
+            // Forzar re-renderizado
+            ledVerde.style.opacity = ledVerde.style.opacity === '0.99' ? '1' : '0.99';
+            ledRojo.style.opacity = ledRojo.style.opacity === '0.99' ? '1' : '0.99';
 
-        // Desactivar botones si hay obstrucción, está en movimiento, o sensor bloqueado
-        btnAbrir.disabled =
-          sensorBlocked ||
-          data.o === "1" ||
-          data.m === "MOVIENDOSE" ||
-          data.p >= data.t - 50;
-        btnCerrar.disabled =
-          sensorBlocked ||
-          data.o === "1" ||
-          data.m === "MOVIENDOSE" ||
-          data.p <= 50;
+            // Depuración de clases aplicadas
+            addLog(`Clases aplicadas: Verde=${ledVerde.className}, Rojo=${ledRojo.className}`);
 
-        const alertContainer = document.getElementById("alertContainer");
-        alertContainer.innerHTML = "";
-        if (data.o === "1") {
-          const alert = document.createElement("div");
-          alert.className = "alert";
-          alert.textContent = `BLOQUEADO POR OBSTRUCCIÓN - ${data.tr} segundos restantes`;
-          alertContainer.appendChild(alert);
-        }
+            document.getElementById('pasosAbrir').textContent = data.t - data.p;
+            document.getElementById('pasosCerrar').textContent = data.p;
 
-        isMoving = data.m === "MOVIENDOSE";
-        isObstructed = data.o === "1";
+            const btnAbrir = document.getElementById('btnAbrir');
+            const btnCerrar = document.getElementById('btnCerrar');
+            btnAbrir.disabled = data.o === '1' || data.m === 'MOVIENDOSE' || data.p >= data.t - 50;
+            btnCerrar.disabled = data.o === '1' || data.m === 'MOVIENDOSE' || data.p <= 50;
 
-        // Si no hay animación en curso, actualizar la barra de progreso directamente
-        if (!animationFrame) {
-          document.getElementById("progressBar").style.width = `${data.c}%`;
-          document.getElementById("progressBar").textContent = `${data.c}%`;
-        }
-      }
+            const alertContainer = document.getElementById('alertContainer');
+            alertContainer.innerHTML = '';
+            if (data.o === '1') {
+                const alert = document.createElement('div');
+                alert.className = 'alert';
+                alert.textContent = `BLOQUEADO POR OBSTRUCCIÓN - ${data.tr} segundos restantes`;
+                alertContainer.appendChild(alert);
+            }
 
-      function updateConnectionStatus(isConnected) {
-        const statusElement = document.getElementById("connectionStatus");
-        statusElement.textContent = isConnected ? "Conectado" : "Desconectado";
-        statusElement.className = `connection-status ${
-          isConnected ? "connected" : "disconnected"
-        }`;
-      }
+            isMoving = data.m === 'MOVIENDOSE';
+            isObstructed = data.o === '1';
 
-      async function enviarComando(comando) {
-        if (isMoving || isObstructed) {
-          addLog(`No se puede enviar ${comando}: sistema ocupado`);
-          return;
+            // Si no hay animación en curso, actualizar la barra de progreso directamente
+            if (!animationFrame) {
+                document.getElementById('progressBar').style.width = `${data.c}%`;
+                document.getElementById('progressBar').textContent = `${data.c}%`;
+            }
         }
 
-        // Desbloquear sensor al presionar cualquier botón
-        if (sensorBlocked) {
-          sensorBlocked = false;
-          addLog("Sensor desbloqueado al presionar botón");
-          // Actualizar inmediatamente la UI del sensor
-          document.getElementById("sensor").textContent =
-            lastStatus.o === "1" ? "Obstrucción" : "Normal";
+        function updateConnectionStatus(isConnected) {
+            const statusElement = document.getElementById('connectionStatus');
+            statusElement.textContent = isConnected ? 'Conectado' : 'Desconectado';
+            statusElement.className = `connection-status ${isConnected ? 'connected' : 'disconnected'}`;
         }
 
-        try {
-          const response = await fetch(
-            `${API_URL}/${comando.toLowerCase()}?_=${Date.now()}`
-          );
-          const data = await response.json();
-          addLog(data.m || `Comando ${comando} enviado`);
+        async function enviarComando(comando) {
+            if (isMoving || isObstructed) {
+                addLog(`No se puede enviar ${comando}: sistema ocupado`);
+                return;
+            }
 
-          if (comando === "ABRIR" || comando === "CERRAR") {
-            // Asegurar que el estado esté limpio antes de iniciar
-            resetMovementState();
+            try {
+                const response = await fetch(`${API_URL}/${comando.toLowerCase()}?_=${Date.now()}`);
+                const data = await response.json();
+                addLog(data.m || `Comando ${comando} enviado`);
 
-            isMoving = true;
-            currentMovement = comando;
-            movementStartTime = performance.now();
-            movementStartPos = lastStatus.p;
-
-            // Actualizar texto del motor inmediatamente
-            document.getElementById("motor").textContent =
-              comando === "ABRIR" ? "Abriéndose" : "Cerrándose";
-            document.getElementById("btnAbrir").disabled = true;
-            document.getElementById("btnCerrar").disabled = true;
-            animateProgressBar(lastStatus, comando);
-          } else if (comando === "RESET") {
-            resetMovementState();
-            await fetchStatus();
-          }
-        } catch (error) {
-          addLog(`Error al enviar ${comando}: ${error.message}`);
-          updateConnectionStatus(false);
-        }
-      }
-
-      function animateProgressBar(status, comando) {
-        if (animationFrame) {
-          cancelAnimationFrame(animationFrame);
+                if (comando === 'ABRIR' || comando === 'CERRAR') {
+                    // Asegurar que el estado esté limpio antes de iniciar
+                    resetMovementState();
+                    
+                    isMoving = true;
+                    currentMovement = comando;
+                    movementStartTime = performance.now();
+                    movementStartPos = lastStatus.p;
+                    document.getElementById('motor').textContent = 'MOVIENDOSE';
+                    document.getElementById('btnAbrir').disabled = true;
+                    document.getElementById('btnCerrar').disabled = true;
+                    animateProgressBar(lastStatus, comando);
+                } else if (comando === 'RESET') {
+                    resetMovementState();
+                    await fetchStatus();
+                }
+            } catch (error) {
+                addLog(`Error al enviar ${comando}: ${error.message}`);
+                updateConnectionStatus(false);
+            }
         }
 
-        const startPos = status.p;
-        const targetPos = comando === "ABRIR" ? status.t : 0;
-        const steps = Math.abs(targetPos - startPos);
-        const duration = (steps / STEPS_PER_SECOND) * 1000; // ms
-        const startTime = performance.now();
-        const startPct = status.c;
-        const targetPct = targetPos === status.t ? 100 : 0;
+        function animateProgressBar(status, comando) {
+            if (animationFrame) {
+                cancelAnimationFrame(animationFrame);
+            }
 
-        document.getElementById("sistemaEstado").textContent =
-          comando === "ABRIR"
-            ? `ABRIENDO ${steps} pasos...`
-            : `CERRANDO ${steps} pasos...`;
+            const startPos = status.p;
+            const targetPos = comando === 'ABRIR' ? status.t : 0;
+            const steps = Math.abs(targetPos - startPos);
+            const duration = (steps / STEPS_PER_SECOND) * 1000; // ms
+            const startTime = performance.now();
+            const startPct = status.c;
+            const targetPct = targetPos === status.t ? 100 : 0;
 
-        function animate(time) {
-          // Si el movimiento se detuvo, no continuar la animación
-          if (!isMoving) {
-            resetMovementState();
-            return;
-          }
+            document.getElementById('sistemaEstado').textContent = comando === 'ABRIR' ? `ABRIENDO ${steps} pasos...` : `CERRANDO ${steps} pasos...`;
 
-          const elapsed = time - startTime;
-          const progress = Math.min(elapsed / duration, 1);
-          const currentPct = startPct + (targetPct - startPct) * progress;
+            function animate(time) {
+                // Si el movimiento se detuvo, no continuar la animación
+                if (!isMoving) {
+                    resetMovementState();
+                    return;
+                }
 
-          document.getElementById("progressBar").style.width = `${currentPct}%`;
-          document.getElementById("progressBar").textContent = `${Math.round(
-            currentPct
-          )}%`;
-          document.getElementById("posicion").textContent = `${Math.round(
-            startPos + (targetPos - startPos) * progress
-          )} / ${status.t} (${Math.round(currentPct)}%)`;
+                const elapsed = time - startTime;
+                const progress = Math.min(elapsed / duration, 1);
+                const currentPct = startPct + (targetPct - startPct) * progress;
 
-          if (progress < 1) {
+                document.getElementById('progressBar').style.width = `${currentPct}%`;
+                document.getElementById('progressBar').textContent = `${Math.round(currentPct)}%`;
+                document.getElementById('posicion').textContent = `${Math.round(startPos + (targetPos - startPos) * progress)} / ${status.t} (${Math.round(currentPct)}%)`;
+
+                if (progress < 1) {
+                    animationFrame = requestAnimationFrame(animate);
+                } else {
+                    // Movimiento completado normalmente
+                    resetMovementState();
+                    fetchStatus(); // Sincronizar con el estado final del servidor
+                }
+            }
+
             animationFrame = requestAnimationFrame(animate);
-          } else {
-            // Movimiento completado normalmente
-            resetMovementState();
-            fetchStatus(); // Sincronizar con el estado final del servidor
-          }
         }
 
-        animationFrame = requestAnimationFrame(animate);
-      }
-
-      // Monitorizar estado durante movimiento y obstrucciones
-      async function monitorStatus() {
-        // Monitorear si hay obstrucción O si se está moviendo
-        if (isObstructed || isMoving) {
-          await fetchStatus();
+        // Monitorizar estado durante movimiento y obstrucciones
+        async function monitorStatus() {
+            // Monitorear si hay obstrucción O si se está moviendo
+            if (isObstructed || isMoving) {
+                await fetchStatus();
+            }
+            setTimeout(monitorStatus, 200);
         }
-        setTimeout(monitorStatus, 200);
-      }
 
-      // Inicializar
-      fetchStatus().then(() => monitorStatus());
+        // Inicializar
+        fetchStatus().then(() => monitorStatus());
     </script>
-  </body>
+</body>
 </html>
