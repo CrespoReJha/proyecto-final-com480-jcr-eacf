@@ -2,6 +2,151 @@
 ## Integrantes
 1. Crespo Rejas Jhamil - Ing. Ciencias de la Computación
 2. Calderón Flores Enrique Antonio - Ing. Ciencias de la Computación
+# Hardware del Sistema de control de Ekran
+El sistema de control de Ekran está diseñado para operar un mecanismo de apertura y cierre mediante un motor paso a paso, con detección de obstrucciones y comunicación por red. A continuación, se detalla el hardware utilizado, junto a su configuración y funcionamiento.
+
+
+## Componentes del Hardware
+### 1. **Arduino Uno**
+<img src="images/arduinouno.jpg" alt="Texto alternativo" width="250" style="float: right; margin-right: 10px;" />
+
+- **Descripción**: La placa Arduino Uno, basada en el microcontrolador ATmega328P, es el cerebro del sistema. Gestiona la lógica de control, la comunicación por Ethernet, la lectura del sensor de vibración, el control del motor paso a paso, y las señales visuales y auditivas (LEDs y buzzer).
+- **Función**: Ejecuta el firmware que coordina todas las tareas, desde la inicialización de los componentes hasta la atención de peticiones HTTP y la gestión de interrupciones por obstrucción.
+- **Conexiones**: Los pines digitales y analógicos se utilizan para conectar los sensores, actuadores y módulos adicionales, configurados en el `setup()` del código Arduino.
+
+### 2. **Placa Ethernet (Shield Ethernet)**
+<img src="images/ethernet.jpg" alt="Texto alternativo" width="260" style="float: right; margin-right: 10px;" />
+
+- **Descripción**: Se utiliza un shield Ethernet compatible con el Arduino Uno, para permitir la comunicación en red local.
+- **Función**: Convierte el Arduino en un servidor HTTP que escucha peticiones en el puerto 80, permitiendo el control remoto desde una interfaz web. Utiliza una dirección IP fija (por ejemplo, `192.168.0.40`) para facilitar el acceso.
+- **Configuración**: Se conecta directamente al Arduino Uno mediante los pines de la interfaz ICSP y los pines digitales/analógicos. La librería `Ethernet.h` gestiona la comunicación.
+- **Detalles**: El shield asegura una conexión estable en la red local, soportando protocolos TCP/IP y permitiendo endpoints como `/abrir`, `/cerrar`, `/reset` y `/status`.
+
+### 3. **Buzzer (Tono Único)**
+<img src="images/buzzer.jpg" alt="Texto alternativo" width="200" style="float: right; margin-right: 10px;" />
+
+- **Descripción**: El buzzer es un componente piezoeléctrico pasivo que emite un tono único (no modulable en frecuencia, tipo "buzzer chino"). Es de color blanco y se conecta mediante una bornera para facilitar su integración.
+- **Función**: Actúa como una alarma audible que se activa cuando se detecta una obstrucción (vibración detectada por el sensor KY-02). Suena de manera intermitente (6 ciclos de 150 ms encendido/apagado) para alertar al usuario.
+- **Funcionamiento**: 
+  - Conectado al pin digital 5 (salida), el buzzer se activa con un nivel lógico alto (`HIGH`) y se apaga con un nivel bajo (`LOW`).
+  - No requiere control de frecuencia, ya que produce un tono fijo característico.
+  - La lógica no bloqueante en el código asegura que el buzzer suene sin interrumpir otras tareas del Arduino.
+- **Conexión**: Se conecta a través de una bornera de dos terminales, con un polo a GND y el otro al pin 5.
+
+### 4. **Sensor de Vibración KY-02**
+<img src="images/sensor.jpg" alt="Texto alternativo" width="160" style="float: right; margin-right: 10px;" />
+
+- **Descripción**: El KY-02 es un sensor de vibración simple que detecta movimientos o golpes físicos. Funciona como un interruptor que cierra el circuito cuando percibe vibración.
+- **Función**: Detecta posibles obstrucciones durante el movimiento del motor. Si se detecta vibración mientras el motor está en movimiento, el sistema detiene el motor, activa el buzzer y el LED rojo, y entra en estado de bloqueo.
+
+- **Funcionamiento**:
+  - Conectado al pin digital 8 con modo `INPUT_PULLUP`, el sensor produce una señal `LOW` cuando detecta vibración (cierra el circuito a GND) y `HIGH` en reposo.
+  - La resistencia pull-up interna del Arduino evita lecturas inestables cuando el circuito está abierto.
+  - La lógica del programa verifica el estado del sensor en cada ciclo del `loop()` para reaccionar rápidamente ante obstrucciones.
+- **Conexión**: Se conecta a través de pines headers en el shield personalizado, con un cable a GND y otro al pin 8.
+
+### 5. **Motor Paso a Paso Nema 17**
+<img src="images/nema.jpg" alt="Texto alternativo" width="160" style="float: right; margin-right: 10px;" />
+
+- **Descripción**: El motor Nema 17 es un motor paso a paso bipolar con 4 cables (dos bobinas: A+, A-, B+, B- ). Es ideal para aplicaciones que requieren movimientos precisos, como el mecanismo de apertura/cierre del sistema Ekran.
+- **Función**: Realiza movimientos controlados para abrir o cerrar el mecanismo, gestionado por la librería `AccelStepper` para un desplazamiento suave con aceleración y velocidad definidas.
+- **Funcionamiento**:
+  - **Bipolar**: Sus 4 cables corresponden a dos bobinas, lo que confirma que es un motor bipolar. Cada bobina debe ser energizada en una secuencia específica para girar el eje.
+  - **Pasos por revolución**: Típicamente 200 pasos por revolución (1.8° por paso), aunque puede configurarse con microstepping para mayor precisión.
+  - **Control**: Se controla mediante un driver que recibe señales de paso (`STEP`) y dirección (`DIR`) desde los pines 3 y 2 del Arduino, respectivamente.
+  - La librería `AccelStepper` configura una velocidad máxima de 400 pasos/s y una aceleración de 600 pasos/s², asegurando movimientos suaves.
+- **Conexión**: Los 4 cables del motor se conectan a una bornera en el shield personalizado, que a su vez se conecta al driver.
+
+### 6. **Driver para Motor Paso a Paso**
+<img src="images/driver.jpg" alt="Texto alternativo" width="140" style="float: right; margin-right: 10px;" />
+
+- **Descripción**: Un driver de motor paso a paso (como el A4988 o DRV8825) se utiliza para controlar el Nema 17, proporcionando la corriente y las señales necesarias para mover el motor.
+- **Función**: Interpreta las señales de paso (`STEP`) y dirección (`DIR`) enviadas por el Arduino para energizar las bobinas del motor en la secuencia correcta.
+- **Funcionamiento**:
+  - **Señales de control**:
+    - Pin 3 (`STEP`): Cada pulso alto en este pin avanza el motor un paso (o microstep, si está configurado).
+    - Pin 2 (`DIR`): Define la dirección del movimiento (`HIGH` para un sentido, `LOW` para el opuesto).
+  - **Microstepping**: El driver puede configurarse para dividir cada paso en fracciones (por ejemplo, 1/16) ajustando resistencias o puentes en el módulo, aumentando la precisión.
+  - **Alimentación**: Recibe 12 V desde una fuente externa (a través de una bornera) y regula la corriente para evitar sobrecalentamiento del motor.
+  - **Protección**: Incluye protección contra sobrecorriente y sobrecalentamiento, ajustable mediante un potenciómetro en el driver.
+- **Conexión**: Se conecta al motor mediante una bornera de 4 terminales (para los cables A+, A-, B+, B- ) y al Arduino mediante headers para las señales `STEP` y `DIR`. En este proyecto no se usa los microsteps, por tanto estan conectados a tierra.
+
+### 7. **Capacitor Electrolítico de 100 µF**
+<img src="images/cap.jpg" alt="Texto alternativo" width="140" style="float: right; margin-right: 10px;" />
+
+- **Descripción**: Un capacitor electrolítico de 100 µF se incluye en el circuito para filtrar ruido eléctrico en la fuente de alimentación.
+- **Función**: Estabiliza la tensión de entrada, reduciendo picos de voltaje o interferencias que podrían afectar el funcionamiento del Arduino, el driver o el motor.
+- **Ubicación**: Conectado en paralelo entre los terminales de alimentación (VCC y GND) de la fuente externa de 12 V, cerca de la bornera de alimentación.
+- **Funcionamiento**: Absorbe fluctuaciones de corriente, especialmente durante los picos de consumo del motor, asegurando un suministro estable.
+
+### 8. **LEDs Indicadores**
+<img src="images/leds.jpg" alt="Texto alternativo" width="140" style="float: right; margin-right: 10px;" />
+
+- **Descripción**: Dos LEDs indicadores se utilizan para señalar el estado del sistema:
+  - **LED Verde** (pin 4): Indica que el sistema está funcionando normalmente (estado `LISTO` o en operación sin obstrucciones).
+  - **LED Rojo** (pin 6): Se enciende cuando se detecta una vibración (obstrucción) y el sistema entra en estado de bloqueo.
+- **Función**:
+  - El LED verde está encendido por defecto tras la inicialización y se apaga temporalmente durante un bloqueo.
+  - El LED rojo se activa junto con el buzzer cuando el sensor KY-02 detecta vibración, alertando al usuario.
+- **Conexión**: Ambos LEDs están conectados a través de resistencias limitadoras de corriente con un valor de 220 Ω a los pines digitales correspondientes, con el cátodo a GND.
+
+### 9. **Borneras y Headers (Shield Personalizado)**
+
+<div style="float: right; margin-left: 10px;">
+  <img src="images/borna.jpg" alt="Texto alternativo" width="140" style="display: block; margin-bottom: 10px;" />
+  <img src="images/macho.png" alt="Texto alternativo" width="140" style="display: block; margin-bottom: 10px;" />
+  <img src="images/hembra.png" alt="Texto alternativo" width="140" style="display: block;" />
+</div>
+
+- **Descripción**: El sistema incluye un shield personalizado que actúa como un "tercer piso" encima del shield Ethernet, facilitando las conexiones de los componentes.
+- **Componentes del Shield**:
+  - **Headers**: 
+    - **Pines macho**: Se utilizan para conectar directamente a los pines del Arduino Uno, permitiendo que el shield personalizado se incruste sobre los pines del Arduino como parte del diseño apilable del "shield customizado". Estos pines macho se emplean para conectar componentes como los LEDs, las señales del driver (`STEP` y `DIR`), y cualquier otro elemento que requiera un pin del Arduino.
+    - **Pines hembra**: Hay 3 pines hembra diseñados para conectar el sensor KY-02 a la placa. Desde estos pines hembra, las conexiones se dirigen a los pines macho que se vinculan con el Arduino. Además, se incluye un espacio con pines hembra para incrustar el driver, ya que este viene con pines macho soldados, facilitando su montaje en el shield.
+  - **Borneras**:
+    - **Bornera para el motor (4 terminales)**: Conecta los 4 cables del Nema 17 (A+, A-, B+, B- ) al driver.
+    - **Bornera de alimentación externa (4 terminales)**: Recibe 12 V desde una fuente tipo cargador (con conector de barril o similar) para alimentar el driver y el motor. Incluye el capacitor de 10 µF en paralelo para filtrar ruido.
+    - **Bornera para el buzzer (2 terminales)**: Conecta el buzzer piezoeléctrico al pin 5 y GND.
+- **Función**: El shield personalizado organiza las conexiones, reduce el uso de cables sueltos y facilita el mantenimiento o reemplazo de componentes. Su diseño apilable asegura compatibilidad con el Arduino Uno y el shield Ethernet.
+<div style="clear: both;"></div>
+
+### 10. **Fuente de Alimentación Externa**
+<img src="images/supply.jpg" alt="Texto alternativo" width="140" style="float: right; margin-right: 10px;" />
+
+- **Descripción**: Una fuente de alimentación de 12 V (tipo cargador) proporciona la energía necesaria para el motor Nema 17 y el driver.
+- **Función**: Alimenta el driver del motor, que regula la corriente para las bobinas del Nema 17. El Arduino y el shield Ethernet se alimentan por separado (típicamente vía USB o una fuente de 5 V).
+- **Conexión**: Se conecta a través de una bornera de 4 terminales en el shield personalizado, con el capacitor de 10 µF en paralelo para estabilizar la tensión.
+
+## Diagrama de Conexiones
+
+### Diseño Físico (Shield Personalizado)
+![Texto alternativo](images/circuito.png)
+### Esquema Eléctrico
+![Texto alternativo](images/esquema.png)
+
+A continuación, se describe la integración de los componentes:
+
+- **Arduino Uno**: Base del sistema, conectado al shield Ethernet mediante pines ICSP y digitales/analógicos.
+- **Shield Ethernet**: Apilado directamente sobre el Arduino, conectado a la red local vía un cable Ethernet.
+- **Shield Personalizado**: Apilado sobre el shield Ethernet, con headers para el sensor KY-02, LEDs, y señales del driver (`STEP`, `DIR`). Incluye borneras para:
+  - Motor Nema 17 (4 terminales).
+  - Fuente de alimentación externa de 12 V (2 terminales, con capacitor de 10 µF).
+  - Buzzer (2 terminales).
+- **Motor Nema 17**: Conectado al driver mediante la bornera de 4 terminales.
+- **Driver**: Recibe señales `STEP` (pin 3) y `DIR` (pin 2) desde el Arduino y alimentación de 12 V desde la bornera.
+- **Sensor KY-02**: Conectado al pin 8 (con `INPUT_PULLUP`) y GND mediante headers.
+- **LEDs**: Conectados a los pines 4 (verde) y 6 (rojo) con resistencias limitadoras.
+- **Buzzer**: Conectado al pin 5 y GND mediante una bornera.
+- **Capacitor de 10 µF**: En paralelo con la bornera de alimentación de 12 V.
+
+
+## Consideraciones de Diseño
+- **Modularidad**: El uso de un shield personalizado con headers y borneras facilita la conexión/desconexión de componentes y el mantenimiento.
+- **Estabilidad**: El capacitor de 10 µF y la fuente externa de 12 V aseguran un suministro estable, crítico para el motor y el driver.
+- **Seguridad**: La detección de obstrucciones mediante el sensor KY-02, combinada con el buzzer y el LED rojo, protege el sistema contra daños físicos.
+- **Escalabilidad**: La estructura del shield permite añadir más sensores o actuadores si es necesario, utilizando los pines disponibles del Arduino.
+
+Este diseño de hardware es robusto, eficiente y adecuado para el control remoto y seguro del sistema Ekran, integrando todos los componentes de manera organizada y funcional.
 
 # Software del Sistema de control de Ekran
 
